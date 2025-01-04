@@ -12,6 +12,10 @@ app.use(express.static("public"));
 // Routes
 app.use("/", userRoutes);
 
+app.get("/", (req,res)=>{
+    res.redirect('users');
+})
+
 // Server
 const PORT = 3000;
 app.listen(PORT, () => {

@@ -1,8 +1,8 @@
-const db = require('../config/db');
+const User = require('../models/userModel'); // Import your User model
 
 // Get all users
 exports.getAllUsers = (req, res) => {
-  db.query('SELECT * FROM User', (err, results) => {
+  User.getAllUsers((err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).send('Database error');
@@ -14,23 +14,22 @@ exports.getAllUsers = (req, res) => {
 // Add a user
 exports.addUser = (req, res) => {
   const { username, phone_number, email } = req.body;
-  db.query(
-    'INSERT INTO User (username, phone_number, email) VALUES (?, ?, ?)',
-    [username, phone_number, email],
-    (err, results) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send('Database error');
-      }
-      res.redirect('/users');
+  const newUser = { username, phone_number, email };
+
+  User.insertUser(newUser, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error');
     }
-  );
+    res.redirect('/users');
+  });
 };
 
 // Delete a user
 exports.deleteUser = (req, res) => {
   const { id } = req.params;
-  db.query('DELETE FROM User WHERE id = ?', [id], (err, results) => {
+
+  User.deleteUser(id, (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).send('Database error');
@@ -42,12 +41,14 @@ exports.deleteUser = (req, res) => {
 // Get edit form
 exports.getEditForm = (req, res) => {
   const { id } = req.params;
-  db.query('SELECT * FROM User WHERE id = ?', [id], (err, results) => {
+
+  User.getAllUsers((err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).send('Database error');
     }
-    res.render('edit', { user: results[0] });
+    const user = results.find((u) => u.id == id); // Assuming `results` contains all users
+    res.render('edit', { user });
   });
 };
 
@@ -55,15 +56,14 @@ exports.getEditForm = (req, res) => {
 exports.updateUser = (req, res) => {
   const { id } = req.params;
   const { username, phone_number, email } = req.body;
-  db.query(
-    'UPDATE User SET username = ?, phone_number = ?, email = ? WHERE id = ?',
-    [username, phone_number, email, id],
-    (err, results) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send('Database error');
-      }
-      res.redirect('/users');
+
+  const updatedData = { username, phone_number, email };
+
+  User.updateUser(id, updatedData, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error');
     }
-  );
+    res.redirect('/users');
+  });
 };
